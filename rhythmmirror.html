@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>리듬미러 연습 화면</title>
+
+  <style>
+    /* ==========================================================
+       색상 변수 (밝은 모드 / 어두운 모드)
+       ========================================================== */
+    :root {
+      --bg: #f5f4f0;
+      --card: #ffffff;
+      --ink: #1c1c1a;
+      --mute: #6a6963;
+      --line: #e1dfd8;
+
+      --acc: #1f6f5c;
+      --accsoft: #dff0ea;
+
+      --early: #c2410c;
+      --late: #1d4ed8;
+      --ok: #15803d;
+      --bad: #b91c1c;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #151514;
+        --card: #201f1d;
+        --ink: #ecebe6;
+        --mute: #a3a19a;
+        --line: #363531;
+
+        --acc: #4fb79b;
+        --accsoft: #1e3a32;
+
+        --early: #fb923c;
+        --late: #60a5fa;
+        --ok: #4ade80;
+        --bad: #f87171;
+      }
+    }
+
+    /* ==========================================================
+       기본 설정
+       ========================================================== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.5 "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--card);
+    }
+
+    h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 15px;
+      margin: 0 0 10px;
+      color: var(--mute);
+      font-weight: 600;
+    }
+
+    /* ==========================================================
+       레이아웃 (카드 격자)
+       ========================================================== */
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      padding: 16px 20px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 6px 0;
+    }
+
+    /* ==========================================================
+       폼 요소 (입력, 선택, 버튼)
+       ========================================================== */
+    label {
+      color: var(--mute);
+      font-size: 13px;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    input[type=number],
+    select,
+    input[type=text] {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+
+    input[type=number] {
+      width: 76px;
+    }
+
+    button {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--acc);
+    }
+
+    button.primary {
+      background: var(--acc);
+      border-color: var(--acc);
+      color: #fff;
+    }
+
+    button.stop {
+      background: var(--bad);
+      border-color: var(--bad);
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* ==========================================================
+       칩 / 배너
+       ========================================================== */
+    .chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 13px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--mute);
+    }
+
+    .chip.on {
+      background: var(--accsoft);
+      border-color: var(--acc);
+      color: var(--acc);
+    }
+
+    .chip.warn {
+      border-color: var(--early);
+      color: var(--early);
+    }
+
+    .banner {
+      background: #fff3cd;
+      color: #664d03;
+      border: 1px solid #ffe69c;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 10px 20px;
+      display: none;
+    }
+
+    /* ==========================================================
+       텍스트 보조 스타일
+       ========================================================== */
+    .big {
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      color: var(--mute);
+      font-size: 13px;
+    }
+
+    .early { color: var(--early); }
+    .late  { color: var(--late); }
+    .okc   { color: var(--ok); }
+
+    /* ==========================================================
+       박 표시 점 / 세기 막대
+       ========================================================== */
+    .beats {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .beats i {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--line);
+      display: block;
+      transition: background .05s;
+    }
+
+    .beats i.f {
+      background: var(--acc);
+    }
+
+    .beats i.a {
+      background: var(--early);
+    }
+
+    .bar {
+      height: 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .bar > div {
+      height: 100%;
+      background: var(--acc);
+      width: 0;
+    }
+
+    /* ==========================================================
+       캔버스 / 표 / 로그
+       ========================================================== */
+    canvas {
+      width: 100%;
+      display: block;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 4px 6px;
+      text-align: center;
+    }
+
+    th {
+      color: var(--mute);
+      font-weight: 600;
+    }
+
+    td.diag {
+      background: var(--accsoft);
+    }
+
+    pre {
+      margin: 0;
+      max-height: 180px;
+      overflow: auto;
+      font: 12px/1.4 ui-monospace, Consolas, monospace;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      white-space: pre-wrap;
+    }
+
+    details summary {
+      cursor: pointer;
+      color: var(--mute);
+    }
+
+    ol {
+      margin: 6px 0 0;
+      padding-left: 20px;
+      color: var(--mute);
+      font-size: 13px;
+    }
+
+    /* ==========================================================
+       통계 박스 (평균 / 표준편차 / 허용 오차 안)
+       ========================================================== */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .stats div {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .stats b {
+      display: block;
+      font-size: 20px;
+    }
+
+    .stats span {
+      font-size: 12px;
+      color: var(--mute);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================================================
+       상단 바: 제목 + 연결/시계 상태
+       ============================================================ -->
+  <header>
+    <h1>리듬미러 연습 화면</h1>
+    <div class="row" style="margin:0">
+      <span class="chip" id="chipConn">연결 안 됨</span>
+      <span class="chip" id="chipSync">시계: -</span>
+    </div>
+  </header>
+
+  <div class="banner" id="noSerial">
+    이 브라우저는 아두이노 연결(Web Serial)을 지원하지 않습니다. 컴퓨터의 Chrome 또는 Edge로 여세요. 지금은 데모 입력(패드 클릭)만 사용할 수 있습니다.
+  </div>
+
+  <main>
+
+    <!-- ==========================================================
+         1. 아두이노 연결
+         ========================================================== -->
+    <section class="card">
+      <h2>1. 아두이노 연결</h2>
+
+      <div class="row">
+        <label>연결 방식</label>
+        <select id="baud">
+          <option value="115200">USB 케이블 (115200)</option>
+          <option value="9600">블루투스 HC-06 (9600)</option>
+        </select>
+        <button class="primary" id="btnConnect">연결</button>
+      </div>
+
+      <div class="row">
+        <button id="btnZ" disabled title="패드를 건드리지 않은 상태에서 눌러 주세요">기준점 다시 재기</button>
+        <label>문턱값</label>
+        <input type="number" id="thr" value="15" min="3" max="500">
+        <button id="btnThr" disabled>적용</button>
+        <button id="btnQ" disabled>상태 확인</button>
+      </div>
+
+      <div class="sub" id="devInfo"></div>
+
+      <details style="margin-top:8px">
+        <summary>처음 사용 순서</summary>
+        <ol>
+          <li>아두이노를 USB로 연결하고 [연결]을 눌러 포트를 고릅니다.</li>
+          <li>위의 "시계"가 ±몇 ms로 표시되면 준비 완료입니다.</li>
+          <li>5곳의 위치 보정(아래)을 각각 10번씩 칩니다.</li>
+          <li>메트로놈 [따라치기 보정]을 한 번 하고, [시작]을 누릅니다.</li>
+        </ol>
+      </details>
+    </section>
+
+    <!-- ==========================================================
+         2. 메트로놈
+         ========================================================== -->
+    <section class="card">
+      <h2>2. 메트로놈</h2>
+
+      <div class="row">
+        <label>BPM</label>
+        <input type="number" id="bpm" value="100" min="40" max="200">
+
+        <label>채점 간격</label>
+        <select id="subdiv">
+          <option value="1">4분음표</option>
+          <option value="2">8분음표</option>
+        </select>
+
+        <label>허용 오차 ±</label>
+        <input type="number" id="tol" value="30" min="5" max="100">
+        <label>ms</label>
+      </div>
+
+      <div class="row">
+        <button class="primary" id="btnStart">시작</button>
+        <button id="btnCalibAudio">따라치기 보정</button>
+        <span class="chip" id="chipOff">소리 지연 보정: 0 ms</span>
+      </div>
+
+      <div class="beats" id="beats">
+        <i></i><i></i><i></i><i></i>
+      </div>
+
+      <div class="sub" id="metroMsg">처음 4박은 카운트인(채점 안 함)입니다.</div>
+    </section>
+
+    <!-- ==========================================================
+         3. 최근 타격
+         ========================================================== -->
+    <section class="card">
+      <h2>3. 최근 타격</h2>
+
+      <div class="big" id="bigErr">-</div>
+      <div class="sub" id="errLabel">박자</div>
+
+      <div style="margin-top:12px" class="sub">
+        세기 <b id="strText">-</b>
+      </div>
+      <div class="bar">
+        <div id="strBar"></div>
+      </div>
+
+      <div style="margin-top:12px" class="sub">
+        위치 <b id="posText" style="font-size:18px;color:var(--ink)">-</b>
+      </div>
+      <div class="sub" id="ratioText"></div>
+    </section>
+
+    <!-- ==========================================================
+         4. 패드 (타점)
+         ========================================================== -->
+    <section class="card">
+      <h2>4. 타점 (패드를 위에서 본 모습)</h2>
+      <canvas id="pad" width="360" height="360" style="max-width:380px;margin:0 auto;cursor:crosshair"></canvas>
+      <div class="sub" id="padHint" style="text-align:center;margin-top:6px"></div>
+    </section>
+
+    <!-- ==========================================================
+         5. 박자 그래프
+         ========================================================== -->
+    <section class="card">
+      <h2>5. 박자 (최근 20번, 위쪽=느림)</h2>
+      <canvas id="chErr" width="520" height="180"></canvas>
+
+      <div class="stats">
+        <div><b id="stMean">-</b><span>평균 (빠름 − / 느림 +)</span></div>
+        <div><b id="stSd">-</b><span>흔들림(표준편차)</span></div>
+        <div><b id="stOk">-</b><span>허용 오차 안</span></div>
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         6. 세기 그래프
+         ========================================================== -->
+    <section class="card">
+      <h2>6. 세기 (최근 20번)</h2>
+      <canvas id="chStr" width="520" height="180"></canvas>
+
+      <div class="row">
+        <label>가득 찬 눈금(합계 값)</label>
+        <input type="number" id="full" value="1500" min="100" max="4000" step="100">
+        <span class="sub">세게 쳤을 때 막대가 꽉 차도록 조정</span>
+      </div>
+
+      <div class="row">
+        <label>포화 경고 기준(센서 1개 값)</label>
+        <input type="number" id="sat" value="650" min="100" max="1023" step="10">
+        <span class="sub">아주 세게 쳐서 값이 더 안 올라가는 지점의 90%</span>
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         7. 위치 보정
+         ========================================================== -->
+    <section class="card">
+      <h2>7. 위치 보정</h2>
+      <div class="sub">각 위치를 10번씩 치면 그 위치의 "센서 값 비율"을 저장합니다.</div>
+
+      <div class="row" id="calBtns"></div>
+      <div class="sub" id="calMsg"></div>
+
+      <div class="row">
+        <button id="btnCalReset">보정 초기화</button>
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         8. 위치 정확도 측정
+         ========================================================== -->
+    <section class="card">
+      <h2>8. 위치 정확도 측정</h2>
+
+      <div class="row">
+        <input type="checkbox" id="accOn">
+        <label for="accOn">측정 켜기</label>
+
+        <label>지금 치는 곳</label>
+        <select id="accTarget"></select>
+
+        <button id="btnAccReset">초기화</button>
+      </div>
+
+      <table id="accTable"></table>
+      <div class="sub" id="accText"></div>
+    </section>
+
+    <!-- ==========================================================
+         9. 기록과 명령
+         ========================================================== -->
+    <section class="card wide">
+      <h2>9. 기록과 명령</h2>
+
+      <div class="row">
+        <button id="btnCsv">타격 기록 CSV로 저장</button>
+        <button id="btnClear">기록 지우기</button>
+        <input type="text" id="cmd" placeholder="아두이노 명령 (예: M100)" style="width:220px">
+        <button id="btnSend" disabled>보내기</button>
+      </div>
+
+      <details>
+        <summary>아두이노에서 오는 글자 보기</summary>
+        <pre id="log"></pre>
+      </details>
+    </section>
+
+  </main>
+
+  <script src="rhythmmirror.js"></script>
+</body>
+
+</html>

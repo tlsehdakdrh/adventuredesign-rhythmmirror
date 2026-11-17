@@ -1012,7 +1012,17 @@ $('btnStart').onclick = () => {
   if (M.running && !M.calib) {
     stopMetronome();
   } else {
-    const bpm = Math.max(40, Math.min(200, +$('bpm').value || 100));   // 40~200으로 제한
+    if (+$('bpm').value < 10) {                 // 10을 넘으면 안내하고 시작하지 않는다
+      alert('BPM은 최소 10 이상 입력할 수 있습니다. 10 이상으로 입력해 주세요.');
+      $('bpm').value = 10;                      // 입력칸도 10으로 되돌린다
+      return;
+    }
+    if (+$('bpm').value >200) {
+      alert('BPM은 최대 200까지 입력할 수 있습니다. 200 이하로 입력해 주세요.');
+      $('bpm').value = 200;
+      return;
+    }
+    const bpm = Math.max(10, Math.min(200, +$('bpm').value || 100));   // 0~200으로 제한
     startMetronome(bpm, +$('subdiv').value, false);
   }
 };
